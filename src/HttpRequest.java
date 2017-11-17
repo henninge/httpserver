@@ -1,5 +1,7 @@
 package httpserver;
 
+import java.io.IOException;
+import java.io.BufferedReader;
 import java.lang.RuntimeException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -15,6 +17,35 @@ public class HttpRequest {
 
     public HashMap<String, String> headers;
     private String lastHeader;
+
+    /**
+     * Request factory
+     *
+     * Creates a factory by reading the socket input stream.
+     */
+    public static HttpRequest fromReader(BufferedReader socketReader)
+        throws IOException
+    {
+        // The first line is the request line.
+        HttpRequest request = new HttpRequest(socketReader.readLine());
+
+        // Next lines are the headers.
+        boolean processing_headers = true;
+        String headerLine;
+
+        while (processing_headers) {
+            headerLine = socketReader.readLine();
+
+            if (headerLine.equals("")) {
+                // The headers are terminated by a blank line.
+                processing_headers = false;
+            } else {
+                request.parseHeaderLine(headerLine);
+            }
+        }
+
+        return request;
+    }
 
     HttpRequest(String requestLine) {
         parseRequestLine(requestLine);
@@ -63,7 +94,7 @@ public class HttpRequest {
         }
     }
 
-    public void parseHeaderLine(String headerLine) {
+    private void parseHeaderLine(String headerLine) {
         String key, value;
         if (headerLine.startsWith(" ") || headerLine.startsWith("\t")) {
             // Header continuation.
