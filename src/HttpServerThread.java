@@ -14,7 +14,16 @@ public class HttpServerThread extends Thread {
     private void cleanUp() throws IOException {
         this.socket.close();
     }
-    
+
+    private void outputRequest(HttpRequest request) {
+        System.out.println(request.toString());
+
+        for (String headerName: request.getHeaderNames()) {
+            String header = request.getHeader(headerName);
+            System.out.println(String.format("%1s: %2s", headerName, header));
+        }
+    }
+
     public void run() {
 
         // Prepare Writer and reader for socket streams.
@@ -24,13 +33,13 @@ public class HttpServerThread extends Thread {
                     new InputStreamReader(socket.getInputStream()));
         ) {
             HttpRequest request = HttpRequest.fromReader(socketIn);
-            System.out.println(request.toString());
 
-            for (String headerName: request.getHeaderNames()) {
-                String header = request.getHeader(headerName);
-                System.out.println(String.format("%1s: %2s", headerName, header));
-            }
+            outputRequest(request);
 
+            HttpResponse response = new HttpResponse();
+            response.setBody("Hallo!", "text/plain");
+            response.write(socketOut);
+            socketOut.flush();
             this.cleanUp();
 
         } catch (IOException e) {
