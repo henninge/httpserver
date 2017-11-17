@@ -14,23 +14,23 @@ public class HttpResponse {
         this(HttpStatus.OK());
     }
 
-    HttpResponse(HttpStatus response_status) {
-        status = response_status;
+    HttpResponse(HttpStatus responseStatus) {
+        status = responseStatus;
         headers = new HashMap<String, String>();
         body = null;
     }
 
-    public void setHeader(String header_name, String header_value) {
-        headers.put(header_name.toLowerCase(), header_value.trim());
+    public void setHeader(String headerName, String headerValue) {
+        headers.put(headerName.toLowerCase(), headerValue.trim());
     }
 
-    public void setBody(String response_body) {
-        body = response_body;
+    public void setBody(String responseBody) {
+        body = responseBody;
     }
 
-    public void setBody(String response_body, String content_type) {
-        body = response_body;
-        setHeader("content-type", content_type);
+    public void setBody(String responseBody, String contentType) {
+        body = responseBody;
+        setHeader("content-type", contentType);
     }
 
     public void write(PrintWriter writer) {

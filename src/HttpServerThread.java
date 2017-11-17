@@ -32,12 +32,17 @@ public class HttpServerThread extends Thread {
             BufferedReader socketIn = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
         ) {
-            HttpRequest request = HttpRequest.fromReader(socketIn);
+            HttpRequest request;
+            HttpResponse response;
 
-            outputRequest(request);
+            try {
+                request = HttpRequest.fromReader(socketIn);
+                response = new HttpResponse();
+                response.setBody("Hallo!", "text/plain");
+            } catch (HttpError he) {
+                response = new HttpResponse(he.status);
+            }
 
-            HttpResponse response = new HttpResponse();
-            response.setBody("Hallo!", "text/plain");
             response.write(socketOut);
             socketOut.flush();
             this.cleanUp();

@@ -25,7 +25,7 @@ public class HttpRequest {
      * Creates a factory by reading the socket input stream.
      */
     public static HttpRequest fromReader(BufferedReader socketReader)
-        throws IOException
+        throws IOException, HttpError
     {
         // The first line is the request line.
         HttpRequest request = new HttpRequest(socketReader.readLine());
@@ -48,7 +48,7 @@ public class HttpRequest {
         return request;
     }
 
-    HttpRequest(String requestLine) {
+    HttpRequest(String requestLine) throws HttpError {
         parseRequestLine(requestLine);
         headers = new HashMap<String, String>();
         lastHeader = null;
@@ -58,12 +58,12 @@ public class HttpRequest {
         return String.format("%1s %2s HTTP/1.1", requestMethod, path);
     }
 
-    private void parseRequestLine(String requestLine) {
+    private void parseRequestLine(String requestLine) throws HttpError {
         String[] rlParts = requestLine.split(" ");
 
         // Exactly 3 parts are expected.
         if (rlParts.length != 3) {
-            throw new RuntimeException("HTTP protocol error: Malformed request line.");
+            throw new HttpError(HttpStatus.BadRequest(), "Malformed request line.");
         }
 
         // Check and select method enum.
@@ -78,24 +78,24 @@ public class HttpRequest {
                 requestMethod = Method.POST;
                 break;
             default:
-                throw new RuntimeException("501 Not Implemented" + rlParts[0]);
+                throw new HttpError(HttpStatus.NotImplemented(), rlParts[0]);
         }
 
         // Parse the target to get the path.
         try {
             URI uri = new URI(rlParts[1]);
             path = uri.getPath();
-       } catch (URISyntaxException urise) {
-            throw new RuntimeException("HTTP protocol error: Malformed request line.");
+        } catch (URISyntaxException urise) {
+            throw new HttpError(HttpStatus.BadRequest(), "Malformed target in request line.");
         }
  
         // Check Protocol.
         if (!rlParts[2].equals("HTTP/1.1")) {
-            throw new RuntimeException("505 HTTP Version Not Supported: " + rlParts[2]);            
+            throw new HttpError(HttpStatus.HttpVersionNotSupported(), rlParts[2]);
         }
     }
 
-    private void parseHeaderLine(String headerLine) {
+    private void parseHeaderLine(String headerLine) throws HttpError {
         String key, value;
         if (headerLine.startsWith(" ") || headerLine.startsWith("\t")) {
             // Header continuation.
@@ -103,7 +103,7 @@ public class HttpRequest {
             // single-line before further processing (RFC 7230 3.2.4)
             if (lastHeader == null) {
                 // No header to continue.
-                throw new RuntimeException("HTTP protocol error: Malformed header.");
+                throw new HttpError(HttpStatus.BadRequest(), "Malformed header: " + headerLine);
             }
 
             key = lastHeader;
@@ -112,7 +112,7 @@ public class HttpRequest {
         } else {
             String[] keyvalue = headerLine.split(": *", 2);
             if (keyvalue.length != 2) {
-                throw new RuntimeException("HTTP protocol error: Malformed header.");
+                throw new HttpError(HttpStatus.BadRequest(), "Malformed header: " + headerLine);
             }
 
             key = keyvalue[0].toLowerCase();

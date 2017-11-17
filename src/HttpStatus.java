@@ -6,14 +6,14 @@ public class HttpStatus {
     public String message;
     public String detail;
 
-    public HttpStatus(int status_code, String status_message) {
-        code = status_code;
-        message = status_message;
+    public HttpStatus(int statusCode, String statusMessage) {
+        code = statusCode;
+        message = statusMessage;
         detail = "";
     }
 
-    public void setDetail(String status_detail) {
-        detail = status_detail;
+    public void setDetail(String statusDetail) {
+        detail = statusDetail;
     }
 
     public String toResponseLine() {
