@@ -23,19 +23,25 @@ public class HttpServerThread extends Thread {
             BufferedReader socketIn = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
         ) {
-            String inputLine;
-            boolean processing = true;
+            boolean processing_headers = true;
+            String headerLine;
+
             // The firest line is the request line.
             HttpRequest request = new HttpRequest(socketIn.readLine());
 
             System.out.println("Serving " + request.toString());
-            while (processing) {
-                inputLine = socketIn.readLine();
-                System.out.println("'" + inputLine + "'");
 
-                if (inputLine.equals("")) {
-                    processing = false;
+            while (processing_headers) {
+                headerLine = socketIn.readLine();
+                if (headerLine.equals("")) {
+                    processing_headers = false;
+                } else {
+                    request.parseHeaderLine(headerLine);
                 }
+            }
+
+            for (java.util.Map.Entry<String, String> header: request.headers.entrySet()) {
+                System.out.println(String.format("%1s: %2s", header.getKey(), header.getValue()));
             }
 
             this.cleanUp();

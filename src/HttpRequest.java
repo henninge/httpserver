@@ -13,8 +13,13 @@ public class HttpRequest {
     protected String path;
     protected String httpHost;
 
+    public HashMap<String, String> headers;
+    private String lastHeader;
+
     HttpRequest(String requestLine) {
         parseRequestLine(requestLine);
+        headers = new HashMap<String, String>();
+        lastHeader = null;
     } 
 
     public String toString() {
@@ -56,5 +61,33 @@ public class HttpRequest {
         if (!rlParts[2].equals("HTTP/1.1")) {
             throw new RuntimeException("505 HTTP Version Not Supported: " + rlParts[2]);            
         }
-    }    
+    }
+
+    public void parseHeaderLine(String headerLine) {
+        String key, value;
+        if (headerLine.startsWith(" ") || headerLine.startsWith("\t")) {
+            // Header continuation.
+            // Multi-line headers are deprecated and must be converted to
+            // single-line before further processing (RFC 7230 3.2.4)
+            if (lastHeader == null) {
+                // No header to continue.
+                throw new RuntimeException("HTTP protocol error: Malformed header.");
+            }
+
+            key = lastHeader;
+            value = headers.get(key) + " " + headerLine.trim();
+
+        } else {
+            String[] keyvalue = headerLine.split(": *", 2);
+            if (keyvalue.length != 2) {
+                throw new RuntimeException("HTTP protocol error: Malformed header.");
+            }
+
+            key = keyvalue[0].toLowerCase();
+            value = keyvalue[1].trim();
+        }
+
+        headers.put(key, value);
+        lastHeader = key;
+    }
 }
