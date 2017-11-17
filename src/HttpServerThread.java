@@ -26,8 +26,9 @@ public class HttpServerThread extends Thread {
             HttpRequest request = HttpRequest.fromReader(socketIn);
             System.out.println(request.toString());
 
-            for (java.util.Map.Entry<String, String> header: request.headers.entrySet()) {
-                System.out.println(String.format("%1s: %2s", header.getKey(), header.getValue()));
+            for (String headerName: request.getHeaderNames()) {
+                String header = request.getHeader(headerName);
+                System.out.println(String.format("%1s: %2s", headerName, header));
             }
 
             this.cleanUp();

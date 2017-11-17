@@ -6,6 +6,7 @@ import java.lang.RuntimeException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.Set;
 
 public class HttpRequest {
     // Possible HTTP request methods.
@@ -15,7 +16,7 @@ public class HttpRequest {
     protected String path;
     protected String httpHost;
 
-    public HashMap<String, String> headers;
+    protected HashMap<String, String> headers;
     private String lastHeader;
 
     /**
@@ -120,5 +121,13 @@ public class HttpRequest {
 
         headers.put(key, value);
         lastHeader = key;
+    }
+
+    public String getHeader(String headerName) {
+        return headers.get(headerName.toLowerCase());
+    }
+
+    public Set<String> getHeaderNames() {
+        return headers.keySet();
     }
 }
