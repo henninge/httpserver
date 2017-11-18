@@ -41,6 +41,11 @@ public class HttpServerThread extends Thread {
                 response = handler.handle(request);
             } catch (HttpError he) {
                 response = new StatusResponse(he.status);
+            } catch (RuntimeException re) {
+                HttpStatus serverError = HttpStatus.ServerError();
+                serverError.setDetail(re.toString());
+                response = new StatusResponse(serverError);
+                re.printStackTrace();
             }
 
             response.write(socketOut);

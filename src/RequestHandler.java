@@ -15,12 +15,12 @@ public class RequestHandler {
             throw new HttpError(HttpStatus.NotFound(), request.path );
         }
 
-        if (pathfile.isDirectory()) {
+        HttpResponse response = null;
 
+        if (pathfile.isDirectory()) {
+            response = new DirectoryResponse(request, pathfile);
         }
 
-        HttpResponse response = new DirectoryResponse(request);
-        response.setHeader("Content-type", "text/plain");
 
         return response;
     }
