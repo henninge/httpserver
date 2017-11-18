@@ -10,7 +10,7 @@ public class HttpServer {
         
     public static void main(String[] args) throws IOException {
 
-        RequestHandler defaultHandler = new RequestHandler();
+        RequestHandler defaultHandler = new RequestHandler(args[0]);
 
         try (ServerSocket serverSocket = new ServerSocket(HTTP_PORT)) { 
             while (true) {
