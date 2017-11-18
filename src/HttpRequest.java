@@ -48,11 +48,18 @@ public class HttpRequest {
         return request;
     }
 
-    HttpRequest(String requestLine) throws HttpError {
+    public HttpRequest() {
+        requestMethod = Method.GET;
+        path = "/";
+        headers = new HashMap<String, String>();
+        lastHeader = null;
+    }
+
+    public HttpRequest(String requestLine) throws HttpError {
         parseRequestLine(requestLine);
         headers = new HashMap<String, String>();
         lastHeader = null;
-    } 
+    }
 
     public String toString() {
         return String.format("%1s %2s HTTP/1.1", requestMethod, path);
@@ -121,6 +128,10 @@ public class HttpRequest {
 
         headers.put(key, value);
         lastHeader = key;
+    }
+
+    public Method getMethod() {
+        return requestMethod;
     }
 
     public String getHeader(String headerName) {

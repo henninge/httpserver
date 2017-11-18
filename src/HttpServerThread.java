@@ -5,10 +5,12 @@ import java.io.*;
 
 public class HttpServerThread extends Thread {
     private Socket socket = null;
+    private RequestHandler handler = null;
 
-    public HttpServerThread(Socket socket) {
+    public HttpServerThread(Socket socket, RequestHandler handler) {
         super("HttpServerThread");
         this.socket = socket;
+        this.handler = handler;
     }
 
     private void cleanUp() throws IOException {
@@ -26,7 +28,6 @@ public class HttpServerThread extends Thread {
 
     public void run() {
 
-        // Prepare Writer and reader for socket streams.
         try (
             PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader socketIn = new BufferedReader(
@@ -37,10 +38,9 @@ public class HttpServerThread extends Thread {
 
             try {
                 request = HttpRequest.fromReader(socketIn);
-                response = new HttpResponse();
-                response.setBody("Hallo!", "text/plain");
+                response = handler.handle(request);
             } catch (HttpError he) {
-                response = new HttpResponse(he.status);
+                response = new StatusResponse(he.status);
             }
 
             response.write(socketOut);

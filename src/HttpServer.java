@@ -10,9 +10,11 @@ public class HttpServer {
         
     public static void main(String[] args) throws IOException {
 
+        RequestHandler defaultHandler = new RequestHandler();
+
         try (ServerSocket serverSocket = new ServerSocket(HTTP_PORT)) { 
             while (true) {
-	            new HttpServerThread(serverSocket.accept()).start();
+	            new HttpServerThread(serverSocket.accept(), defaultHandler).start();
 	        }
 
 	    } catch (IOException e) {

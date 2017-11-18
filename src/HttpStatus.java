@@ -12,6 +12,10 @@ public class HttpStatus {
         detail = "";
     }
 
+    public boolean equals(HttpStatus otherStatus) {
+        return code == otherStatus.code;
+    }
+
     public void setDetail(String statusDetail) {
         detail = statusDetail;
     }
@@ -21,12 +25,7 @@ public class HttpStatus {
     }
 
     public String toResponseBody() {
-        if (code >= 300) {
-            return String.format("%1d %2s: %3s", code, message, detail);
-        } else {
-            // No default body for 2xx codes.
-            return null;
-        }
+        return String.format("%1d %2s: %3s", code, message, detail);
     }
 
     static HttpStatus OK() { return new HttpStatus(200, "OK");}

@@ -4,33 +4,32 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpResponse {
+public abstract class HttpResponse {
 
-    private HttpStatus status;
-    private HashMap<String, String> headers;
-    private String body;
+    protected HttpStatus status;
+    protected HashMap<String, String> headers;
+    protected HttpRequest request;
 
-    HttpResponse() {
-        this(HttpStatus.OK());
+    public HttpResponse() {
+        this(new HttpRequest());
     }
 
-    HttpResponse(HttpStatus responseStatus) {
+    public HttpResponse(HttpRequest httpRequest) {
+        this(HttpStatus.OK(), httpRequest);
+    }
+
+    public HttpResponse(HttpStatus responseStatus, HttpRequest httpRequest) {
         status = responseStatus;
         headers = new HashMap<String, String>();
-        body = null;
+        request = httpRequest;
     }
 
     public void setHeader(String headerName, String headerValue) {
         headers.put(headerName.toLowerCase(), headerValue.trim());
     }
 
-    public void setBody(String responseBody) {
-        body = responseBody;
-    }
-
-    public void setBody(String responseBody, String contentType) {
-        body = responseBody;
-        setHeader("content-type", contentType);
+    public boolean hasBody() {
+        return !(status.equals(HttpStatus.NoContent()) || request.getMethod() == HttpRequest.Method.HEAD);
     }
 
     public void write(PrintWriter writer) {
@@ -38,12 +37,13 @@ public class HttpResponse {
         for (Map.Entry<String, String> header: headers.entrySet()) {
             writer.println(String.format("%1s: %2s", header.getKey(), header.getValue()));
         }
-        if (body == null) {
-            body = status.toResponseBody();
-        }
-        if (body != null) {
+
+        if (hasBody()) {
             writer.println("");
-            writer.print(body);
+            writeBody(writer);
         }
     }
+
+    public abstract void writeBody(PrintWriter writer);
+
 }
