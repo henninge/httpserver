@@ -3,10 +3,19 @@ package httpserver;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 
 public abstract class HttpResponse {
+
+    protected static SimpleDateFormat rfc1123Format;
+    static {
+        rfc1123Format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'");
+        rfc1123Format.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     protected HttpStatus status;
     protected HashMap<String, String> headers;
@@ -35,6 +44,8 @@ public abstract class HttpResponse {
     }
 
     protected void addRequiredHeaders() {
+        Date now = new Date(System.currentTimeMillis());
+        setHeader("Date", rfc1123Format.format(now));
         setHeader("Connection", "Close");
     }
 
