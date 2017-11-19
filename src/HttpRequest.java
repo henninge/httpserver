@@ -37,7 +37,7 @@ public class HttpRequest {
         while (processing_headers) {
             headerLine = socketReader.readLine();
 
-            if (headerLine.equals("")) {
+            if (headerLine == null || headerLine.equals("")) {
                 // The headers are terminated by a blank line.
                 processing_headers = false;
             } else {
