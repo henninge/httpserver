@@ -14,7 +14,6 @@ public class HttpRequest {
 
     protected Method requestMethod;
     protected String path;
-    protected String httpHost;
 
     protected HashMap<String, String> headers;
     private String lastHeader;
