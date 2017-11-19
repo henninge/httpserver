@@ -25,7 +25,7 @@ public class HttpRequest {
      * Creates a factory by reading the socket input stream.
      */
     public static HttpRequest fromReader(BufferedReader socketReader)
-        throws IOException, HttpError
+        throws IOException, HttpError, NoRequestException
     {
         // The first line is the request line.
         HttpRequest request = new HttpRequest(socketReader.readLine());
@@ -55,7 +55,9 @@ public class HttpRequest {
         lastHeader = null;
     }
 
-    public HttpRequest(String requestLine) throws HttpError {
+    public HttpRequest(String requestLine)
+        throws HttpError, NoRequestException
+    {
         parseRequestLine(requestLine);
         headers = new HashMap<String, String>();
         lastHeader = null;
@@ -65,7 +67,14 @@ public class HttpRequest {
         return String.format("%1s %2s HTTP/1.1", requestMethod, path);
     }
 
-    private void parseRequestLine(String requestLine) throws HttpError {
+    private void parseRequestLine(String requestLine)
+        throws HttpError, NoRequestException
+    {
+        // Catch empty input streams.
+        if (requestLine == null) {
+            throw new NoRequestException();
+        }
+
         String[] rlParts = requestLine.split(" ");
 
         // Exactly 3 parts are expected.

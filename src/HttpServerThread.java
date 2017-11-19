@@ -28,11 +28,12 @@ public class HttpServerThread extends Thread {
 
     public void run() {
 
-        try (
+        try {
+
             PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader socketIn = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
-        ) {
+
             HttpRequest request;
             HttpResponse response;
 
@@ -41,6 +42,9 @@ public class HttpServerThread extends Thread {
                 response = handler.handle(request);
             } catch (HttpError he) {
                 response = new StatusResponse(he.status);
+            } catch (NoRequestException nre) {
+                // No request found, send no response.
+                response = null;
             } catch (RuntimeException re) {
                 HttpStatus serverError = HttpStatus.ServerError();
                 serverError.setDetail(re.toString());
@@ -48,9 +52,14 @@ public class HttpServerThread extends Thread {
                 re.printStackTrace();
             }
 
-            response.write(socketOut);
-            socketOut.flush();
-            this.cleanUp();
+            if (response != null) {
+                response.write(socketOut);
+            }
+
+            // Clean up
+            socketOut.close();
+            socketIn.close();
+            socket.close();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -32,7 +32,14 @@ public abstract class HttpResponse {
         return !(status.equals(HttpStatus.NoContent()) || request.getMethod() == HttpRequest.Method.HEAD);
     }
 
+    protected void addRequiredHeaders() {
+        setHeader("Connection", "Close");
+    }
+
     public void write(PrintWriter writer) {
+        // Finalize Reponse
+        addRequiredHeaders();
+
         writer.println(status.toResponseLine());
         for (Map.Entry<String, String> header: headers.entrySet()) {
             writer.println(String.format("%1s: %2s", header.getKey(), header.getValue()));
