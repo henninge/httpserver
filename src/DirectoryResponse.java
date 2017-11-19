@@ -14,7 +14,7 @@ public class DirectoryResponse extends HttpResponse {
         super(httpRequest);
         directory = directoryPath;
         basedir = basedirPath;
-        setHeader("Content-Type", "text/html");
+        setHeader("Content-Type", "text/html; charset=UTF-8");
     }
 
     private String getHref(Path filePath) {
