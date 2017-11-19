@@ -40,6 +40,7 @@ public class HttpStatus {
     static HttpStatus Forbidden() { return new HttpStatus(403, "Forbidden");}
     static HttpStatus NotFound() { return new HttpStatus(404, "Not Found");}
     static HttpStatus MethodNotAllowed() { return new HttpStatus(405, "Method Not Allowed");}
+    static HttpStatus PreconditionFailed() { return new HttpStatus(412, "Precondition Failed");}
 
     static HttpStatus ServerError() { return new HttpStatus(500, "Server Error");}
     static HttpStatus NotImplemented() { return new HttpStatus(501, "Not Implemented");}

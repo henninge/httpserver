@@ -44,7 +44,21 @@ public class FileResponse extends HttpResponse {
         return hexDigest.toString();
     }
 
-    public FileResponse(HttpRequest httpRequest, Path filePath) {
+    private boolean isEtagInHeader(String header, String etag) {
+        if (header.equals("*")) {
+            return true;
+        }
+
+        for (String headerEtag: header.split(", *")) {
+            if (headerEtag.equals("\"" + etag + "\"")) {
+                return true;
+            }
+        }
+
+        return false:
+    }
+
+    public FileResponse(HttpRequest httpRequest, Path filePath) throws HttpError {
         super(httpRequest);
         file = filePath;
         int fileSize;
@@ -71,10 +85,29 @@ public class FileResponse extends HttpResponse {
         }
 
         if (lastModified != null) {
-            setHeader("Etag", getSha1Digest(
+            // The following only make sense if we know the modification time.
+            String etag = getSha1Digest(
                 rfc1123Format.format(lastModified),
                 file.toString()
-            ));
+            );
+            setHeader("Etag", etag );
+
+            String ifMatch = request.getHeader("If-Match");
+            if (ifMatch != null && !isEtagInHeader(ifMatch, etag)) {
+                // Do not serve this request!
+                throw new HttpError(HttpStatus.PreconditionFailed(), "If-Match");
+            }
+
+            String ifNoneMatch = request.getHeader("If-None-Match");
+            if (ifNoneMatch != null && isEtagInHeader(ifNoneMatch, etag)) {
+                if (request.getMethod() == HttpRequest.GET || request.getMethod() == HttpRequest.HEAD) {
+                    status = HttpStatus.NotModified();
+                } else {
+                    // Do not serve this request!
+                    throw new HttpError(HttpStatus.PreconditionFailed(), "If-None-Match");
+                }
+            }
+
         }
     }
 

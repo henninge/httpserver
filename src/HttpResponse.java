@@ -40,7 +40,10 @@ public abstract class HttpResponse {
     }
 
     public boolean hasBody() {
-        return !(status.equals(HttpStatus.NoContent()) || request.getMethod() == HttpRequest.Method.HEAD);
+        return !(
+            status.equals(HttpStatus.NoContent()) ||
+            status.equals(HttpStatus.NotModified()) ||
+            request.getMethod() == HttpRequest.Method.HEAD);
     }
 
     protected void addRequiredHeaders() {
@@ -59,9 +62,9 @@ public abstract class HttpResponse {
         for (Map.Entry<String, String> header: headers.entrySet()) {
             writer.println(String.format("%1s: %2s", header.getKey(), header.getValue()));
         }
+        writer.println("");
 
         if (hasBody()) {
-            writer.println("");
             writeBody(out);
         }
     }
