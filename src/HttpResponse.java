@@ -1,5 +1,7 @@
 package httpserver;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,9 +38,11 @@ public abstract class HttpResponse {
         setHeader("Connection", "Close");
     }
 
-    public void write(PrintWriter writer) {
+    public void write(OutputStream out) throws IOException {
         // Finalize Reponse
         addRequiredHeaders();
+
+        PrintWriter writer = new PrintWriter(out, true);
 
         writer.println(status.toResponseLine());
         for (Map.Entry<String, String> header: headers.entrySet()) {
@@ -47,10 +51,10 @@ public abstract class HttpResponse {
 
         if (hasBody()) {
             writer.println("");
-            writeBody(writer);
+            writeBody(out);
         }
     }
 
-    public abstract void writeBody(PrintWriter writer);
+    public abstract void writeBody(OutputStream out) throws IOException;
 
 }

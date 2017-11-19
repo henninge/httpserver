@@ -30,7 +30,7 @@ public class HttpServerThread extends Thread {
 
         try {
 
-            PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
+            OutputStream socketOut = socket.getOutputStream();
             BufferedReader socketIn = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
 

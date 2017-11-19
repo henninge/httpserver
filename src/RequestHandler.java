@@ -31,6 +31,8 @@ public class RequestHandler {
 
         if (filepath.toFile().isDirectory()) {
             response = new DirectoryResponse(request, filepath, basedir);
+        } else {
+            response = new FileResponse(request, filepath);
         }
 
         return response;

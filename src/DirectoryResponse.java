@@ -2,6 +2,7 @@ package httpserver;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 
@@ -21,7 +22,9 @@ public class DirectoryResponse extends HttpResponse {
         return "/" + basedir.relativize(filePath).toString();
     }
 
-    public void writeBody(PrintWriter writer) {
+    public void writeBody(OutputStream out) throws IOException {
+        PrintWriter writer = new PrintWriter(out, true);
+
         writer.println(String.format(
             "<html><body><h1>%1s</h2><ul>", getHref(directory)));
         for (File file: directory.toFile().listFiles()) {

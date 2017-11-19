@@ -1,6 +1,7 @@
 package httpserver;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class StatusResponse extends HttpResponse {
 
@@ -16,7 +17,7 @@ public class StatusResponse extends HttpResponse {
         super(responseStatus, httpRequest);
     }
 
-    public void writeBody(PrintWriter writer) {
-        writer.println(status.toResponseBody());
+    public void writeBody(OutputStream out) throws IOException {
+        out.write(status.toResponseBody().getBytes("UTF-8"));
     }
 }
