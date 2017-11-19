@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 
 public class FileResponse extends HttpResponse {
 
@@ -24,6 +25,13 @@ public class FileResponse extends HttpResponse {
             "Content-Disposition",
             String.format("attachment; filename=\"%1s\"", file.getFileName()));
         setHeader("Content-Type", "application/octet-stream");
+
+        try {
+            Date lastModified = new Date(Files.getLastModifiedTime(file).toMillis());
+            setHeader("Last-Modified", rfc1123Format.format(lastModified));
+        } catch (IOException ioe) {
+            // Just leave out the header.
+        }
     }
 
     public void writeBody(OutputStream out) throws IOException {
