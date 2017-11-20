@@ -40,6 +40,10 @@ public abstract class HttpResponse {
                      connectionRequest.toLowerCase().equals("keep-alive");
     }
 
+    public String toString() {
+        return status.toResponseBody();
+    }
+
     public void setHeader(String headerName, String headerValue) {
         headers.put(headerName.toLowerCase(), headerValue.trim());
     }
@@ -57,6 +61,8 @@ public abstract class HttpResponse {
 
         if (!persistent) {
             setHeader("Connection", "close");
+        } else {
+            setHeader("Keep-Alive", String.format("timeout=%1d", HttpServer.DEFAULT_TIMEOUT));
         }
     }
 

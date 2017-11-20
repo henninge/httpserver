@@ -6,11 +6,13 @@ import java.io.*;
 public class HttpServerThread extends Thread {
     private Socket socket = null;
     private RequestHandler handler = null;
+    private long connectionCounter;
 
-    public HttpServerThread(Socket socket, RequestHandler handler) {
+    public HttpServerThread(Socket socket, RequestHandler handler, long connectionCounter) {
         super("HttpServerThread");
         this.socket = socket;
         this.handler = handler;
+        this.connectionCounter = connectionCounter;
     }
 
     private void cleanUp() throws IOException {
@@ -27,26 +29,25 @@ public class HttpServerThread extends Thread {
     }
 
     public void run() {
-
         try {
-            System.out.println("Opening new connection.");
+            // Add a few extra seconds.
+            socket.setSoTimeout((HttpServer.DEFAULT_TIMEOUT + 5) * 1000 );
 
             OutputStream socketOut = socket.getOutputStream();
             BufferedReader socketIn = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
 
-            HttpRequest request;
-            HttpResponse response;
+            HttpRequest request = null;
+            HttpResponse response = null;
 
             do {
                 try {
                     request = HttpRequest.fromReader(socketIn);
-                    outputRequest(request);
                     response = handler.handle(request);
                 } catch (HttpError he) {
                     response = new StatusResponse(he.status);
-                } catch (NoRequestException nre) {
-                    // No request found, send no response.
+                } catch (NoRequestException | java.net.SocketTimeoutException nre) {
+                    // No request found, send no response and close the connection.
                     response = null;
                 } catch (RuntimeException re) {
                     HttpStatus serverError = HttpStatus.ServerError();
@@ -57,7 +58,13 @@ public class HttpServerThread extends Thread {
 
                 if (response != null) {
                     response.write(socketOut);
+                    // Log request to stdout
+                    System.out.println(
+                        String.format("[%1$5d][%2$s][%3$s]",
+                            connectionCounter, request.toString(), response.toString()
+                    ));
                 }
+
             } while (response != null && response.isPersistent());
 
             // Clean up
@@ -65,8 +72,8 @@ public class HttpServerThread extends Thread {
             socketIn.close();
             socket.close();
 
-            System.out.println("Connection closed.");
-
+        } catch (java.net.SocketException se) {
+            se.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

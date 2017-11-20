@@ -17,6 +17,9 @@ public class DirectoryResponse extends HttpResponse {
         directory = directoryPath;
         basedir = basedirPath;
         setHeader("Content-Type", "text/html; charset=UTF-8");
+        // We cannot send a Content-Length header for directories
+        // which is needed for persistent connections.
+        persistent = false;
     }
 
     private String getHref(Path filePath) {
