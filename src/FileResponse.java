@@ -64,6 +64,9 @@ public class FileResponse extends HttpResponse {
         file = filePath;
         int fileSize;
 
+        // Close connections because keep-alive is not working. :-(
+        persistent = false;
+
         try {
             setHeader("Content-Size", String.format("%1d", Files.size(file)));
         } catch (IOException ioe) {
@@ -146,5 +149,6 @@ public class FileResponse extends HttpResponse {
 
     public void writeBody(OutputStream out) throws IOException {
         Files.copy(file, out);
+        out.flush();
     }
 }

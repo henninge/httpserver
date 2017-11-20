@@ -38,7 +38,6 @@ public class DirectoryResponse extends HttpResponse {
 
     public void writeBody(OutputStream out) throws IOException {
         PrintWriter writer = new PrintWriter(out, true);
-
         writer.println(String.format(
             "<html><body><h1>%1s</h2><ul>", getHref(directory)));
 
@@ -49,5 +48,6 @@ public class DirectoryResponse extends HttpResponse {
            }
         }
         writer.println("</ul></body></html>");
+        writer.flush();
     }
 }

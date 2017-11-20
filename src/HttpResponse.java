@@ -84,6 +84,7 @@ public abstract class HttpResponse {
             writer.println(String.format("%1s: %2s", header.getKey(), header.getValue()));
         }
         writer.println("");
+        writer.flush();
 
         if (hasBody()) {
             writeBody(out);

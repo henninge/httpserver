@@ -58,6 +58,7 @@ public class HttpServerThread extends Thread {
 
                 if (response != null) {
                     response.write(socketOut);
+                    socketOut.flush();
                     // Log request to stdout
                     System.out.println(
                         String.format("[%1$5d][%2$s][%3$s]",
