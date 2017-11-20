@@ -29,6 +29,7 @@ public class HttpServerThread extends Thread {
     public void run() {
 
         try {
+            System.out.println("Opening new connection.");
 
             OutputStream socketOut = socket.getOutputStream();
             BufferedReader socketIn = new BufferedReader(
@@ -37,29 +38,34 @@ public class HttpServerThread extends Thread {
             HttpRequest request;
             HttpResponse response;
 
-            try {
-                request = HttpRequest.fromReader(socketIn);
-                response = handler.handle(request);
-            } catch (HttpError he) {
-                response = new StatusResponse(he.status);
-            } catch (NoRequestException nre) {
-                // No request found, send no response.
-                response = null;
-            } catch (RuntimeException re) {
-                HttpStatus serverError = HttpStatus.ServerError();
-                serverError.setDetail(re.toString());
-                response = new StatusResponse(serverError);
-                re.printStackTrace();
-            }
+            do {
+                try {
+                    request = HttpRequest.fromReader(socketIn);
+                    outputRequest(request);
+                    response = handler.handle(request);
+                } catch (HttpError he) {
+                    response = new StatusResponse(he.status);
+                } catch (NoRequestException nre) {
+                    // No request found, send no response.
+                    response = null;
+                } catch (RuntimeException re) {
+                    HttpStatus serverError = HttpStatus.ServerError();
+                    serverError.setDetail(re.toString());
+                    response = new StatusResponse(serverError);
+                    re.printStackTrace();
+                }
 
-            if (response != null) {
-                response.write(socketOut);
-            }
+                if (response != null) {
+                    response.write(socketOut);
+                }
+            } while (response != null && response.isPersistent());
 
             // Clean up
             socketOut.close();
             socketIn.close();
             socket.close();
+
+            System.out.println("Connection closed.");
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -20,6 +20,7 @@ public abstract class HttpResponse {
     protected HttpStatus status;
     protected HashMap<String, String> headers;
     protected HttpRequest request;
+    protected boolean persistent;
 
     public HttpResponse() {
         this(new HttpRequest());
@@ -33,6 +34,10 @@ public abstract class HttpResponse {
         status = responseStatus;
         headers = new HashMap<String, String>();
         request = httpRequest;
+
+        String connectionRequest = request.getHeader("Connection");
+        persistent = connectionRequest == null ||
+                     connectionRequest.toLowerCase().equals("keep-alive");
     }
 
     public void setHeader(String headerName, String headerValue) {
@@ -49,7 +54,14 @@ public abstract class HttpResponse {
     protected void addRequiredHeaders() {
         Date now = new Date(System.currentTimeMillis());
         setHeader("Date", rfc1123Format.format(now));
-        setHeader("Connection", "Close");
+
+        if (!persistent) {
+            setHeader("Connection", "close");
+        }
+    }
+
+    public boolean isPersistent() {
+        return persistent;
     }
 
     public void write(OutputStream out) throws IOException {
