@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.Date;
 
 public class FileResponse extends HttpResponse {
@@ -55,7 +56,7 @@ public class FileResponse extends HttpResponse {
             }
         }
 
-        return false:
+        return false;
     }
 
     public FileResponse(HttpRequest httpRequest, Path filePath) throws HttpError {
@@ -86,6 +87,26 @@ public class FileResponse extends HttpResponse {
 
         if (lastModified != null) {
             // The following only make sense if we know the modification time.
+            String ifModifiedSinceHeader = request.getHeader("If-Modified-Since");
+            Date ifModifiedSince = null;
+            boolean isModified = true;
+            if (ifModifiedSinceHeader != null) {
+                try {
+                    ifModifiedSince = rfc1123Format.parse(ifModifiedSinceHeader);
+                } catch (ParseException pe) {
+                    ifModifiedSince = null;
+                }
+                if (ifModifiedSince != null) {
+                    Date now = new Date(System.currentTimeMillis());
+                    if (ifModifiedSince.after(now)) {
+                        // Future dates are invalid.
+                        ifModifiedSince = null;
+                    } else if (!lastModified.after(ifModifiedSince)) {
+                        isModified = false;
+                    }
+                }
+            }
+
             String etag = getSha1Digest(
                 rfc1123Format.format(lastModified),
                 file.toString()
@@ -99,15 +120,27 @@ public class FileResponse extends HttpResponse {
             }
 
             String ifNoneMatch = request.getHeader("If-None-Match");
-            if (ifNoneMatch != null && isEtagInHeader(ifNoneMatch, etag)) {
-                if (request.getMethod() == HttpRequest.GET || request.getMethod() == HttpRequest.HEAD) {
-                    status = HttpStatus.NotModified();
+            if (ifNoneMatch != null ) {
+                if (isEtagInHeader(ifNoneMatch, etag)) {
+                    if (request.getMethod() == HttpRequest.Method.GET ||
+                        request.getMethod() == HttpRequest.Method.HEAD)
+                    {
+                        // Do not overwrite If-Modified-Since
+                        isModified = ifModifiedSinceHeader == null ? false : isModified;
+                    } else {
+                        // Do not serve this request!
+                        throw new HttpError(HttpStatus.PreconditionFailed(), "If-None-Match");
+                    }
                 } else {
-                    // Do not serve this request!
-                    throw new HttpError(HttpStatus.PreconditionFailed(), "If-None-Match");
+                    // Ignore If-Modified-Since.
+                    isModified = true;
                 }
             }
 
+            if (!isModified) {
+                // Do not serve the file content.
+                status = HttpStatus.NotModified();
+            }
         }
     }
 
