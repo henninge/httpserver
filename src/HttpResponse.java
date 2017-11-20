@@ -22,6 +22,12 @@ public abstract class HttpResponse {
     protected HttpRequest request;
     protected boolean persistent;
 
+    private void setPersistentFlag() {
+        String connectionRequest = request.getHeader("Connection");
+        persistent = connectionRequest == null ||
+                     connectionRequest.toLowerCase().equals("keep-alive");
+    }
+
     public HttpResponse() {
         this(new HttpRequest());
     }
@@ -34,10 +40,7 @@ public abstract class HttpResponse {
         status = responseStatus;
         headers = new HashMap<String, String>();
         request = httpRequest;
-
-        String connectionRequest = request.getHeader("Connection");
-        persistent = connectionRequest == null ||
-                     connectionRequest.toLowerCase().equals("keep-alive");
+        setPersistentFlag();
     }
 
     public String toString() {
