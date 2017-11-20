@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class HttpRequest {
     // Possible HTTP request methods.
-    static enum Method {GET, HEAD, POST};
+    static enum Method {GET, HEAD}; // POST,PUT, ...
 
     protected Method requestMethod;
     protected String path;
@@ -89,10 +89,7 @@ public class HttpRequest {
             case "HEAD":
                 requestMethod = Method.HEAD;
                 break;
-            case "POST":
-                requestMethod = Method.POST;
-                break;
-            default:
+           default:
                 throw new HttpError(HttpStatus.NotImplemented(), rlParts[0]);
         }
 
