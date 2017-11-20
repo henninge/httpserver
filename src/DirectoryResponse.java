@@ -26,6 +26,16 @@ public class DirectoryResponse extends HttpResponse {
         return "/" + basedir.relativize(filePath).toString();
     }
 
+
+    private String getDisplayName(Path filePath) {
+        String fileName = filePath.getFileName().toString();
+        if (Files.isDirectory(filePath)) {
+            return fileName + "/";
+        } else {
+            return fileName;
+        }
+    }
+
     public void writeBody(OutputStream out) throws IOException {
         PrintWriter writer = new PrintWriter(out, true);
 
@@ -35,7 +45,7 @@ public class DirectoryResponse extends HttpResponse {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
            for (Path file: stream) {
                 writer.println(String.format(
-                    "<li><a href=\"%1s\">%2s</a></li>", getHref(file), file.getFileName()));
+                    "<li><a href=\"%1s\">%2s</a></li>", getHref(file), getDisplayName(file)));
            }
         }
         writer.println("</ul></body></html>");
